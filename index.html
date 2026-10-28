@@ -1,0 +1,187 @@
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>তথ্য জমা দিন</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: #f1f5f9;
+      color: #172033;
+    }
+
+    .form-card {
+      width: 100%;
+      max-width: 420px;
+      padding: 30px;
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 10px 35px rgba(0,0,0,.08);
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 25px;
+      margin: 0 0 10px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #64748b;
+      margin-bottom: 28px;
+      font-size: 14px;
+    }
+
+    label {
+      display: block;
+      margin: 17px 0 8px;
+      font-weight: 600;
+    }
+
+    input {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #cbd5e1;
+      border-radius: 9px;
+      font-size: 16px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px #dbeafe;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 24px;
+      padding: 14px;
+      border: none;
+      border-radius: 9px;
+      background: #2563eb;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: .6;
+      cursor: wait;
+    }
+
+    #message {
+      margin-top: 18px;
+      text-align: center;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .privacy {
+      font-size: 12px;
+      color: #64748b;
+      text-align: center;
+      margin-top: 18px;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="form-card">
+    <h1>তথ্য জমা দিন</h1>
+    <p class="subtitle">অনুগ্রহ করে আপনার নাম ও মোবাইল নম্বর দিন।</p>
+
+    <form id="contactForm">
+      <label for="name">আপনার নাম</label>
+      <input
+        id="name"
+        name="name"
+        type="text"
+        maxlength="100"
+        placeholder="সম্পূর্ণ নাম লিখুন"
+        autocomplete="name"
+        required
+      >
+
+      <label for="phone">মোবাইল নম্বর</label>
+      <input
+        id="phone"
+        name="phone"
+        type="tel"
+        inputmode="numeric"
+        maxlength="11"
+        pattern="01[3-9][0-9]{8}"
+        placeholder="01XXXXXXXXX"
+        autocomplete="tel"
+        required
+      >
+
+      <button id="submitBtn" type="submit">তথ্য জমা দিন</button>
+      <p id="message" role="status" aria-live="polite"></p>
+    </form>
+
+    <p class="privacy">
+      আপনার দেওয়া তথ্য সংরক্ষণের জন্য জমা হবে।
+    </p>
+  </main>
+
+  <script>
+    // এখানে Apps Script-এর Web App URL বসাতে হবে।
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxpeXg2L_Rh07LW0vm_jONLozy3YEEA9wGkZa3hVKOm_-Yxe-OIak2tIBKPxQIuH2wL/exec";
+
+    const form = document.getElementById("contactForm");
+    const button = document.getElementById("submitBtn");
+    const message = document.getElementById("message");
+
+    form.addEventListener("submit", async function(event) {
+      event.preventDefault();
+
+      if (!form.reportValidity()) return;
+
+      if (!SCRIPT_URL.startsWith("https://script.google.com/")) {
+        message.textContent = "প্রথমে Apps Script URL বসান।";
+        return;
+      }
+
+      button.disabled = true;
+      message.textContent = "তথ্য জমা হচ্ছে...";
+
+      try {
+        const data = new URLSearchParams({
+          name: document.getElementById("name").value.trim(),
+          phone: document.getElementById("phone").value.trim()
+        });
+
+        // no-cors: Google Apps Script-এ সাধারণ HTML ফর্ম পাঠানোর পদ্ধতি।
+        // এতে সার্ভার থেকে সফলতার উত্তর পড়া যায় না।
+        await fetch(SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          body: data
+        });
+
+        message.textContent =
+          "অনুরোধ পাঠানো হয়েছে। Google Sheet-এ তথ্য জমা হয়েছে কি না যাচাই করুন।";
+
+        form.reset();
+
+      } catch (error) {
+        message.textContent =
+          "পাঠানো যায়নি। ইন্টারনেট ও Apps Script URL পরীক্ষা করুন।";
+      } finally {
+        button.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
